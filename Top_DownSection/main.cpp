@@ -33,7 +33,7 @@ struct AnimData
 #pragma endregion
 
 Vector2 FindDirection(Vector2 Position,Vector2 WindowSettings,int Scale,float Speed);
-
+int AnimateCharacter(int Frame,int MaxFrame,float& RunningTime,float UpdateTime,float deltatime);
 
 
 
@@ -44,7 +44,6 @@ int main(){
 
 
     // ---------------------- general settings ----------------------
-    float delta_time = GetFrameTime();
     int Speed{10};
 
     // Map Settings
@@ -56,16 +55,22 @@ int main(){
         WHITE
     };
     // ------------------------ Character Settings ----------------------------------
-    CharacterSettings OUH{
+    CharacterSettings Character{
         LoadTexture("characters/knight_run_spritesheet.png"),
         4.0f,
         1.0f,
         {
-        (float)Win_Settings.x/2.0f - 4.0f * (0.5f * (float)OUH.Texture.width/6.0f),
-        (float)Win_Settings.y/2.0f - 4.0f * (0.5f * (float)OUH.Texture.height)
+        (float)Win_Settings.x/2.0f - 4.0f * (0.5f * (float)Character.Texture.width/6.0f),
+        (float)Win_Settings.y/2.0f - 4.0f * (0.5f * (float)Character.Texture.height)
         },
     };
 
+    AnimData CharacterAnimation{
+        0.0f,
+        12.0f,
+        0,
+        6
+    };
 
     Texture2D Knight_Run = LoadTexture("characters/knight_run_spritesheet.png");
     Texture2D Knight_Idle = LoadTexture("characters/knight_idle_spritesheet.png");
@@ -74,28 +79,41 @@ int main(){
         (float)Win_Settings.x/2.0f - 4.0f * (0.5f * (float)Current_Knight.width/6.0f),
         (float)Win_Settings.y/2.0f - 4.0f * (0.5f * (float)Current_Knight.height)
     };
-    float rightleft = 1.0f;
+    
     
 
     SetTargetFPS(60);
     while(!WindowShouldClose()){
         BeginDrawing();
         ClearBackground(WHITE);
+        float delta_time = GetFrameTime();
         
         Vector2 FinalDirection= FindDirection(Map.Position,Win_Settings,Map.Scale,Speed);
         if(Vector2Length(FinalDirection) != 0.0f){
             Map.Position = Vector2Subtract(Map.Position,FinalDirection);
             //FinalDirection.x < 0.0f ? rightleft = -1.0f : rightleft = 1.0f;
-            FinalDirection.x < 0.0f ? OUH.Flip = -1.0f : OUH.Flip = 1.0f;
+            FinalDirection.x < 0.0f ? Character.Flip = -1.0f : Character.Flip = 1.0f;
+            Current_Knight = Knight_Run;
+
+        }
+        else{
+            Current_Knight = Knight_Idle;
         }
         // ------- drawing map image -------
         DrawTextureEx(Map.Texture,Map.Position,Map.Rotation,Map.Scale,Map.Tint);
 
         // ------- Drawing the character ----------
+        CharacterAnimation.Frame = AnimateCharacter(CharacterAnimation.Frame,
+                                                    CharacterAnimation.MaxFrame,
+                                                    CharacterAnimation.RunningTime,
+                                                    CharacterAnimation.UpdateTime,
+                                                    delta_time);
+
         Rectangle Source{
-            0.0f,0.0f,
-            OUH.Flip * (Current_Knight.width/6.0f),
-            Current_Knight.height
+            CharacterAnimation.Frame * (float)Character.Texture.width/CharacterAnimation.MaxFrame,
+            0.0f,
+            Character.Flip * (float)(Current_Knight.width/6.0f),
+            (float)Current_Knight.height
         };
         Rectangle Dest{
             knightPos.x, knightPos.y,
@@ -110,7 +128,9 @@ int main(){
         EndDrawing();
     }
     UnloadTexture(Map.Texture); 
-    //UnloadTexture(Knight.Texture);
+    UnloadTexture(Current_Knight);
+    UnloadTexture(Knight_Idle);
+    UnloadTexture(Knight_Run);
     CloseWindow();
 
 
@@ -138,4 +158,17 @@ Vector2 FindDirection(Vector2 Position,Vector2 WindowSettings,int Scale,float Sp
     Direction = Vector2Normalize(Direction);
     Direction = Vector2Scale(Direction,Speed);
     return Direction;
+}
+
+int AnimateCharacter(int Frame,int MaxFrame,float& RunningTime,float UpdateTime,float deltatime){
+    
+    RunningTime += deltatime;
+        if(RunningTime > 1/UpdateTime){
+            RunningTime =0;
+            Frame ++;
+            if(Frame > MaxFrame){
+                Frame =0;
+            }
+        }   
+    return Frame;
 }
