@@ -17,12 +17,18 @@ struct CharacterSettings
 {
     Texture2D Texture;
     float Scale;
-    Rectangle Source;
-    Rectangle Dest;
-    Vector2 Origin;
-    float Rotation;
-    Color Tint;
+    float Flip;
+    Vector2 Position;
 };
+
+struct AnimData
+{
+    float RunningTime;
+    float UpdateTime;
+    int Frame;
+    int MaxFrame;
+};
+
 
 #pragma endregion
 
@@ -30,13 +36,14 @@ Vector2 FindDirection(Vector2 Position,Vector2 WindowSettings,int Scale,float Sp
 
 
 
+
 int main(){
     const Vector2 Win_Settings{960,640};
     InitWindow(Win_Settings.x,Win_Settings.y,"Game Window");
-    SetTargetFPS(60);
+    
 
 
-    // general settings
+    // ---------------------- general settings ----------------------
     float delta_time = GetFrameTime();
     int Speed{10};
 
@@ -48,45 +55,62 @@ int main(){
         4,
         WHITE
     };
-
-    // Character Settings
-    CharacterSettings Knight{
+    // ------------------------ Character Settings ----------------------------------
+    CharacterSettings OUH{
         LoadTexture("characters/knight_run_spritesheet.png"),
         4.0f,
-        { 0.0f, 0.0f, (float)Knight.Texture.width/6, (float)Knight.Texture.height},
-        {   
-            (float) Win_Settings.x/2 - (Knight.Scale * 0.5f * Knight.Texture.width/6.0f), 
-            (float) Win_Settings.y/2.0f - (Knight.Scale * 0.5f * Knight.Texture.height),
-            (float) Knight.Scale * (Knight.Texture.width/6.0f),
-            (float) Knight.Scale * (Knight.Texture.height)
+        1.0f,
+        {
+        (float)Win_Settings.x/2.0f - 4.0f * (0.5f * (float)OUH.Texture.width/6.0f),
+        (float)Win_Settings.y/2.0f - 4.0f * (0.5f * (float)OUH.Texture.height)
         },
-        {0.5f,0.5f},
-        0.0f,
-        WHITE
     };
 
 
+    Texture2D Knight_Run = LoadTexture("characters/knight_run_spritesheet.png");
+    Texture2D Knight_Idle = LoadTexture("characters/knight_idle_spritesheet.png");
+    Texture2D Current_Knight = Knight_Idle;
+    Vector2 knightPos{
+        (float)Win_Settings.x/2.0f - 4.0f * (0.5f * (float)Current_Knight.width/6.0f),
+        (float)Win_Settings.y/2.0f - 4.0f * (0.5f * (float)Current_Knight.height)
+    };
+    float rightleft = 1.0f;
+    
+
+    SetTargetFPS(60);
     while(!WindowShouldClose()){
         BeginDrawing();
         ClearBackground(WHITE);
         
         Vector2 FinalDirection= FindDirection(Map.Position,Win_Settings,Map.Scale,Speed);
-        if(Vector2Length(FinalDirection) != 0.0){
+        if(Vector2Length(FinalDirection) != 0.0f){
             Map.Position = Vector2Subtract(Map.Position,FinalDirection);
+            //FinalDirection.x < 0.0f ? rightleft = -1.0f : rightleft = 1.0f;
+            FinalDirection.x < 0.0f ? OUH.Flip = -1.0f : OUH.Flip = 1.0f;
         }
-        
-        
-        
-        
-        // drawing map image
+        // ------- drawing map image -------
         DrawTextureEx(Map.Texture,Map.Position,Map.Rotation,Map.Scale,Map.Tint);
-        DrawTexturePro(Knight.Texture,Knight.Source,Knight.Dest,Knight.Origin,Knight.Rotation,Knight.Tint);
+
+        // ------- Drawing the character ----------
+        Rectangle Source{
+            0.0f,0.0f,
+            OUH.Flip * (Current_Knight.width/6.0f),
+            Current_Knight.height
+        };
+        Rectangle Dest{
+            knightPos.x, knightPos.y,
+            4.0f * Current_Knight.width/6.0f,
+            4.0f * Current_Knight.height
+        };
         
+        DrawTexturePro(Current_Knight,Source,Dest,Vector2{},0.0f,WHITE);
+
+
         
-        //DrawText(TextFormat("Direction : %.3f,%.3f",FinalDirection.x,FinalDirection.y),100,100,50,RED);
         EndDrawing();
     }
     UnloadTexture(Map.Texture); 
+    //UnloadTexture(Knight.Texture);
     CloseWindow();
 
 
