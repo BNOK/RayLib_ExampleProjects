@@ -3,17 +3,8 @@
 #include <cstdio>
 #include <string>
 
-
 // --------------- Window Struct ---------------
-struct MapSettings
-{
-    Texture2D Texture;
-    Vector2 Position;
-    float Rotation;
-    int Scale;
-    Color Tint;
-};
-
+const Vector2 Win_Settings{960, 640};
 class Character;
 class Map;
 
@@ -21,11 +12,10 @@ class Map;
 Vector2 FindDirection(Vector2 Position, Vector2 WindowSettings, int Scale, float Speed);
 int AnimateCharacter(int Frame, int MaxFrame, float &RunningTime, float UpdateTime, float deltatime);
 
-
 // =================== Main function ========================
 int main()
 {
-    const Vector2 Win_Settings{960, 640};
+    
     InitWindow(Win_Settings.x, Win_Settings.y, "Game Window");
 
     // ---------------------- general settings ----------------------
@@ -47,8 +37,7 @@ int main()
 
     Character KnightObject;
     KnightObject.setTexture(Knight_Idle);
-
-    
+    KnightObject.setScreenPosition(knightPos);
     
 
     SetTargetFPS(60);
@@ -57,6 +46,18 @@ int main()
         BeginDrawing();
         ClearBackground(WHITE);
 
+        Vector2 FinalDirection = FindDirection(KnightObject.getScreenPosition(), Win_Settings, Map.Scale, Speed);
+        if (Vector2Length(FinalDirection) != 0.0f)
+        {
+            Map.Position = Vector2Subtract(Map.Position, FinalDirection);
+            // FinalDirection.x < 0.0f ? rightleft = -1.0f : rightleft = 1.0f;
+            FinalDirection.x < 0.0f ? Flip = -1.0f : Flip = 1.0f;
+            Current_Knight = Knight_Run;
+        }
+        else
+        {
+            Current_Knight = Knight_Idle;
+        }
         // TICK FUNCTION CALL
         KnightObject.Tick(GetFrameTime());
         // ------- drawing map image -------
@@ -67,12 +68,12 @@ int main()
                                                     CharacterAnimation.MaxFrame,
                                                     CharacterAnimation.RunningTime,
                                                     CharacterAnimation.UpdateTime,
-                                                    delta_time);
+                                                    GetFrameTime());
 
         Rectangle Source{
-            CharacterAnimation.Frame * (float)Character.Texture.width / CharacterAnimation.MaxFrame,
+            CharacterAnimation.Frame * (float)Knight_Idle.width / CharacterAnimation.MaxFrame,
             0.0f,
-            Character.Flip * (float)(Current_Knight.width / 6.0f),
+            KnightObject.XFlip * (float)(Knight_Idle.width / 6.0f),
             (float)Current_Knight.height};
         Rectangle Dest{
             knightPos.x, knightPos.y,
@@ -139,14 +140,16 @@ class Character
 {
 private:
     Texture2D Texture;
+    Texture2D Idle;
+    Texture2D Run;
     Vector2 ScreenPosition;
     Vector2 WorldPosition;
     // Character flip
     float XFlip = 1.0f;
     float RunningTime = 0.0f;
-    float UpdateTime = 0.0f;
+    const float UpdateTime = 0.0f;
     int Frame = 0;
-    int MaxFrame = 0;
+    const int MaxFrame = 0;
     float Speed = 5.0f;
 
 public:
@@ -220,18 +223,18 @@ public:
 
 void Character::Tick(float deltatime)
 {
-    // Vector2 FinalDirection = FindDirection(this->getScreenPosition, Win_Settings, Map.Scale, Speed);
-    // if (Vector2Length(FinalDirection) != 0.0f)
-    // {
-    //     Map.Position = Vector2Subtract(Map.Position, FinalDirection);
-    //     // FinalDirection.x < 0.0f ? rightleft = -1.0f : rightleft = 1.0f;
-    //     FinalDirection.x < 0.0f ? Character.Flip = -1.0f : Character.Flip = 1.0f;
-    //     Current_Knight = Knight_Run;
-    // }
-    // else
-    // {
-    //     Current_Knight = Knight_Idle;
-    // }
+    Vector2 FinalDirection = FindDirection(ScreenPosition, Win_Settings, Map.Scale, Speed);
+    if (Vector2Length(FinalDirection) != 0.0f)
+    {
+        Map.Position = Vector2Subtract(Map.Position, FinalDirection);
+        // FinalDirection.x < 0.0f ? rightleft = -1.0f : rightleft = 1.0f;
+        FinalDirection.x < 0.0f ? Character.Flip = -1.0f : Character.Flip = 1.0f;
+        Current_Knight = Knight_Run;
+    }
+    else
+    {
+        Current_Knight = Knight_Idle;
+    }
 }
 
 class Map
