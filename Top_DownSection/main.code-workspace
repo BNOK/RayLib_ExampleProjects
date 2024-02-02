@@ -52,7 +52,13 @@
 			"cinttypes": "cpp",
 			"typeinfo": "cpp",
 			"iterator": "cpp",
-			"functional": "cpp"
+			"functional": "cpp",
+			"bit": "cpp",
+			"compare": "cpp",
+			"concepts": "cpp",
+			"numeric": "cpp",
+			"random": "cpp",
+			"numbers": "cpp"
 		}
 	}
 }

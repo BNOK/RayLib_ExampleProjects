@@ -1,7 +1,21 @@
+#include "raylib.h"
+#include "raymath.h"
 #include <cstdio>
+#include <string>
 
-using namespace std;
 
-int main(){
-    printf("Hello World");
+class Character;
+class Map;
+
+
+int main()
+{
+
+    while(!WindowShouldClose()){
+
+
+    }
+
+
+    CloseWindow();
 }
