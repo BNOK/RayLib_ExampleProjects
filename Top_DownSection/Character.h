@@ -3,7 +3,7 @@
 class Character
 {
 public:
-    Character();
+    Character(float inWinwidth, float inWinHeight,float Scale);
     Vector2 getWorldPos() { return worldPos; }
     void setScreenPos(int winWidth, int winHeight);
     void tick(float deltaTime);

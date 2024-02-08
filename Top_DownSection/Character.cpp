@@ -1,16 +1,11 @@
 #include "Character.h"
 #include "raymath.h"
 
-Character::Character(){
+Character::Character(float inWinwidth, float inWinheight,float Scale){
     Size.x = texture.width/maxFrames;
     Size.y = texture.height;
-}
-
-void Character::setScreenPos(int winWidth, int winHeight)
-{
-    screenPos = {(float)winWidth / 2.0f - 4.0f * (0.5f * (float)texture.width / 6.0f),
-                 (float)winHeight / 2.0f - 4.0f * (0.5f * (float)Size.y)
-    };
+    screenPos.x = static_cast<float>(inWinwidth) / 2.0f - 4.0f * (0.5f * static_cast<float>(texture.width / 6.0f));
+    screenPos.y = static_cast<float>(inWinheight) / 2.0f - 4.0f * (0.5f * static_cast<float>(Size.y));
 }
 
 void Character::tick(float deltaTime)
